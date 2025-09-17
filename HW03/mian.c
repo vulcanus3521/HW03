@@ -30,6 +30,7 @@ int main()
 	// 여기부터 코드를 작성하세요----------------------   
 	moveCursor(0, 3);
 	printBomb(0);
+
 	int a = 13;
 	int posx = 14, posy = 9;
 	int x, y;
@@ -42,7 +43,6 @@ int main()
 
 	while (length < a)
 	{
-
 		x = cos(angle * PI / 180.0);
 		y = sin(angle * PI / 180.0);
 		int count = 0;
@@ -84,12 +84,9 @@ int main()
 	posy = 9;
 	length = 0;
 	angle = 270.0;
-	
 
 	while (length < a)
 	{
-		
-
 		x = cos(angle * PI / 180.0);
 		y = sin(angle * PI / 180.0);
 		int count = 0;
@@ -125,6 +122,7 @@ int main()
 		length++;
 		length++;
 	}
+
 	moveCursor(posx, posy);
 	printf(" ");
 
