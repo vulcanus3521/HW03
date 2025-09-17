@@ -51,7 +51,7 @@ int main()
 			posx += x;
 			posy += y;
 			moveCursor(posx, posy);
-			//Sleep(100);
+			Sleep(100);
 			printf("#");
 			count++;
 		}
@@ -67,7 +67,7 @@ int main()
 			posy += y;
 			moveCursor(posx, posy);
 
-			//Sleep(100);
+			Sleep(100);
 			printf("#");
 
 			count++;
