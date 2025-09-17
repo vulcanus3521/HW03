@@ -28,15 +28,19 @@ void printBomb(int isExploded)
 int main()
 {
 	// 여기부터 코드를 작성하세요----------------------   
+	moveCursor(0, 3);
 	printBomb(0);
 	int a = 13;
-	int posx = 7, posy = 1;
+	int posx = 14, posy = 9;
 	int x, y;
-	double angle = 0.0;
-	int length = a;
+	double angle = 270.0;
+	int length = 0;
 
+	moveCursor(posx, posy);
+	printf("*");
+	
 
-	while (length > 0)
+	while (length < a)
 	{
 
 		x = cos(angle * PI / 180.0);
@@ -47,16 +51,15 @@ int main()
 			posx += x;
 			posy += y;
 			moveCursor(posx, posy);
-			Sleep(100);
+			//Sleep(100);
 			printf("#");
 			count++;
 		}
-		angle += 90.0;
+		angle -= 90.0;
 
 		x = cos(angle * PI / 180.0);
 		y = sin(angle * PI / 180.0);
-		length--;
-		length--;
+		
 		count = 0;
 		while (count < length)
 		{
@@ -64,24 +67,28 @@ int main()
 			posy += y;
 			moveCursor(posx, posy);
 
-			Sleep(100);
+			//Sleep(100);
 			printf("#");
 
 			count++;
 		}
-		angle += 90.0;
-
+		angle -= 90.0;
+		length++;
+		length++;
 	}
 
 	moveCursor(posx, posy);
-	printf("*");
 	Sleep(1000);
 
-	angle -= 180.0;
+	posx = 14;
+	posy = 9;
+	length = 0;
+	angle = 270.0;
+	
 
 	while (length < a)
 	{
-		angle -= 90.0;
+		
 
 		x = cos(angle * PI / 180.0);
 		y = sin(angle * PI / 180.0);
@@ -101,8 +108,7 @@ int main()
 
 		x = cos(angle * PI / 180.0);
 		y = sin(angle * PI / 180.0);
-		length++;
-		length++;
+		
 		count = 0;
 		while (count < length)
 		{
@@ -115,9 +121,14 @@ int main()
 			if (length != a + 1) printf("*");
 			count++;
 		}
+		angle -= 90.0;
+		length++;
+		length++;
 	}
+	moveCursor(posx, posy);
+	printf(" ");
 
-	moveCursor(0, 0);
+	moveCursor(0, 3);
 	printBomb(1);
 
     // 여기까지 코드를 작성하세요----------------------   
