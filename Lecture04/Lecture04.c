@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
 
-#define NUM 10
+#define NUM 100
 
 int main()
 {
@@ -20,12 +20,6 @@ int main()
 				i--;
 			}
 		}
-	}
-
-	printf("a : ");
-	for (i = 0;i < NUM;i++)
-	{
-		printf("%d ", a[i]);
 	}
 
 	/*
@@ -57,10 +51,11 @@ int main()
 		b[i] = data;
 	}
 
-	printf("\nb : ");
-	for (i = 0;i < NUM;i++)
+	printf("i   \ta\tb");
+	for (i = 0; i < NUM; i++)
 	{
-		printf("%d ", b[i]);
+		//Sleep(5);
+		printf("\n%d   \t%d\t%d", i, a[i], b[i]);
 	}
 
 	return 0;
