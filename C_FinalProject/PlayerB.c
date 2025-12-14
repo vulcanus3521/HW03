@@ -1,4 +1,4 @@
-/**
+/*
  * =================================================================================================
     코드 하나로 합친 사람 : 정진욱
     AI 제작 : 보류 (정진욱)
@@ -79,8 +79,6 @@ int load_csv(Item items[], int max_items) {
 }
 
 /* -------------------------------------------------------
-   정진욱
-   
    문제 1 (독해금 6번 스킬)
    - ATK >= 4
    - DEF <= 5
@@ -116,12 +114,10 @@ void solve_skill_6(char* out, int outlen) {
         }
     }
 
-    printf("[DEBUG] 문제1(스킬6) 정답 = %s\n", out);
+    //printf("[DEBUG] 문제1(스킬6) 정답 = %s\n", out);
 }
 
 /* -------------------------------------------------------
-   김용환
-   
    문제 2 - s7 전역 변수에 정답 저장
 ------------------------------------------------------- */
 char s7[64] = { 0 };
@@ -167,9 +163,7 @@ void solve_skill_7(void)
 }
 
 /* =========================================
-   김한슬
-   
-   문제 4 : 점멸 해금 (CMD 8~11)
+   문제 3 : 점멸 해금 (CMD 8~11)
    strcat & 조건 조합 문제 (교수님 수정 조건 반영)
    ========================================= */
 void solve_skill_8_11(char* out) {
@@ -239,13 +233,11 @@ void solve_skill_8_11(char* out) {
     strcat(out, f3);
     strcat(out, f4);
 
-    printf("[문제 4 BLINK 결과] %s\n", out);
+    //printf("[문제 4 BLINK 결과] %s\n", out);
 }
 
 
 /* -------------------------------------------------------
-   김한슬
-   
    문제 4 (HEAL2 스킬)
    - strcmp(NAME, SLOT) 결과가
      0 또는 양수(사전순으로 NAME이 더 뒤일 때)
@@ -262,7 +254,7 @@ void solve_skill_13(char* out, int outlen) {
         if (strcmp(items[i].name, items[i].slot) >= 0) {
             strncpy(out, items[i].key_frag, outlen - 1);
             out[outlen - 1] = '\0';
-            printf("[DEBUG] 문제13 선택: id=%d name=%s slot=%s frag=%s\n", items[i].id, items[i].name, items[i].slot, out);
+            //printf("[DEBUG] 문제13 선택: id=%d name=%s slot=%s frag=%s\n", items[i].id, items[i].name, items[i].slot, out);
             return;
         }
     }
@@ -271,8 +263,6 @@ void solve_skill_13(char* out, int outlen) {
 }
 
 /* -------------------------------------------------------
-   보류
-   
    문제 5 (원거리공격 해금, 스킬 14 / CMD_RANGE_ATTACK)
    - KEY_FRAG == "K" 인 아이템을 찾아 그 아이템의 HP를 N으로 정의
    - 파일의 시작(오프셋 0)에서 N 바이트 앞으로 fseek 이동
@@ -297,8 +287,8 @@ void solve_skill_14(char* out, int outlen)
             hp_value = items[i].hp;
             strcpy(keyfrag, items[i].key_frag);
 
-            printf("KEY_FRAG = %s → ID %d\n", keyfrag, found_id);
-            printf("HP = %d\n", hp_value);
+            //printf("KEY_FRAG = %s → ID %d\n", keyfrag, found_id);
+            //printf("HP = %d\n", hp_value);
             break;
         }
     }
@@ -316,7 +306,7 @@ void solve_skill_14(char* out, int outlen)
     }
 
     /* 3. fseek 이동 */
-    printf("fseek(0, %d, SEEK_SET)\n", hp_value);
+    //printf("fseek(0, %d, SEEK_SET)\n", hp_value);
     fseek(fp, hp_value - 1, SEEK_SET);
 
     /* 4. 5글자 읽기 */
@@ -324,17 +314,15 @@ void solve_skill_14(char* out, int outlen)
     fread(buf, 1, 5, fp);
     fclose(fp);
 
-    printf("파일 %d번째 바이트부터 읽은 5글자: %s\n", hp_value, buf);
+    //printf("파일 %d번째 바이트부터 읽은 5글자: %s\n", hp_value, buf);
 
     /* 5. 결과를 \"문자열\" 형태로 변환 */
     snprintf(out, outlen, "\"%s\"", buf);
 
-    printf("정답: \"%s\"\n", buf);
+    //printf("정답: \"%s\"\n", buf);
 }
 
 /* -------------------------------------------------------
-   보류
-   
    문제 6 (자폭 스킬, CMD_SELF_DESTRUCT = 16)
    - NAME에 "Sword" 포함 아이템 찾기
    - 해당 아이템들의 KEY_FRAG를 순서대로 이어붙여 S 생성
@@ -352,13 +340,12 @@ void solve_skill_16(char* out, int outlen)
     char S[256] = { 0 };
     int found_count = 0;
 
-    printf("=== [자폭 스킬 해금 풀이 과정] ===\n");
+    //printf("=== [자폭 스킬 해금 풀이 과정] ===\n");
 
     /* 1. NAME에 Sword 포함 아이템 찾기 */
     for (int i = 0; i < n; i++) {
         if (strstr(items[i].name, "Sword") != NULL) {
-            printf("Sword 포함: ID %d (%s), KEY_FRAG=%s\n",
-                items[i].id, items[i].name, items[i].key_frag);
+            //printf("Sword 포함: ID %d (%s), KEY_FRAG=%s\n", items[i].id, items[i].name, items[i].key_frag);
 
             strncat(S, items[i].key_frag, sizeof(S) - strlen(S) - 1);
             found_count++;
@@ -370,7 +357,7 @@ void solve_skill_16(char* out, int outlen)
         return;
     }
 
-    printf("S = \"%s\"\n", S);
+    //printf("S = \"%s\"\n", S);
 
     /* 2. strtok('*') → 토큰 중 가장 긴 것 선택 */
     char S_copy[256];
@@ -381,12 +368,11 @@ void solve_skill_16(char* out, int outlen)
 
     int t_index = 0;
     while (token != NULL) {
-        printf("토큰 %d = \"%s\" (길이=%d)\n",
-            t_index, token, (int)strlen(token));
+        //printf("토큰 %d = \"%s\" (길이=%d)\n", t_index, token, (int)strlen(token));
 
         if (strlen(token) > strlen(best)) {
             strcpy(best, token);
-            printf(" → 현재 최장 토큰 갱신: \"%s\"\n", best);
+            //printf(" → 현재 최장 토큰 갱신: \"%s\"\n", best);
         }
         /* 길이 동일하면 '먼저 나온 토큰 유지' 규칙이므로 갱신 X */
 
@@ -398,13 +384,11 @@ void solve_skill_16(char* out, int outlen)
     strncpy(out, best, outlen - 1);
     out[outlen - 1] = '\0';
 
-    printf("최종 선택된 토큰 = \"%s\"\n", out);
-    printf("=== [자폭 스킬 풀이 끝] ===\n");
+    //printf("최종 선택된 토큰 = \"%s\"\n", out);
+    //printf("=== [자폭 스킬 풀이 끝] ===\n");
 }
 
 /* -------------------------------------------------------
-   김용환
-   
    문제 7 - 김용환, s7 전역 변수에 정답 저장
 ------------------------------------------------------- */
 char s17[64] = { 0 };
@@ -463,14 +447,12 @@ void solve_skill_17_18(void)
     strcpy(answer7, part1); // 문자열 연결
     strcat(answer7, part2); // 문자열 연결
 
-    printf("%s\n", answer7);
+    //printf("%s\n", answer7);
     strcpy(s17, answer7);
 }
 
 
 /* -------------------------------------------------------
-   정진욱
-   
    문제 8 (스킬 19)
    - NAME에 Stone 포함 아이템 탐색
    - NAME 문자열을 모음(A,E,I,O,U)을 '개별' 구분자로 직접 분리
@@ -489,7 +471,7 @@ void solve_skill_19(char* out, int outlen) {
     for (int i = 0; i < n; i++) {
         if (strstr(items[i].name, "Stone") != NULL) {
             strcpy(selected_name, items[i].name);
-            printf("[DEBUG] Stone 포함 NAME 발견 (id=%d) → %s\n", items[i].id, selected_name);
+            //printf("[DEBUG] Stone 포함 NAME 발견 (id=%d) → %s\n", items[i].id, selected_name);
             break;
         }
     }
@@ -502,10 +484,12 @@ void solve_skill_19(char* out, int outlen) {
     /* 모음 구분자(개별 문자 처리) */
     char vowels[] = { 'A', 'E', 'I', 'O', 'U', 'a', 'e', 'i', 'o', 'u', '\0' };
 
-    printf("[DEBUG] 구분자(모음) 목록 = ");
+    //printf("[DEBUG] 구분자(모음) 목록 = ");
+    /*
     for (int i = 0; vowels[i]; i++)
         printf("%c ", vowels[i]);
     printf("\n");
+    */
 
     /* 직접 토큰 만들기 */
     char best[128] = { 0 };
@@ -513,7 +497,7 @@ void solve_skill_19(char* out, int outlen) {
     int cidx = 0;
     int token_index = 0;
 
-    printf("[DEBUG] 문자열 분석 시작 = \"%s\"\n", selected_name);
+    //printf("[DEBUG] 문자열 분석 시작 = \"%s\"\n", selected_name);
 
     for (int i = 0; selected_name[i] != '\0'; i++) {
         char ch = selected_name[i];
@@ -523,12 +507,10 @@ void solve_skill_19(char* out, int outlen) {
             /* 토큰 종료 */
             if (cidx > 0) {
                 current[cidx] = '\0';
-                printf("[DEBUG] 토큰 %d = \"%s\" (길이=%d)\n",
-                    token_index, current, (int)strlen(current));
+                //printf("[DEBUG] 토큰 %d = \"%s\" (길이=%d)\n", token_index, current, (int)strlen(current));
 
                 if (strlen(current) > strlen(best)) {
-                    printf("        → 최장 토큰 갱신: \"%s\" → \"%s\"\n",
-                        best[0] ? best : "(none)", current);
+                    //printf("        → 최장 토큰 갱신: \"%s\" → \"%s\"\n", best[0] ? best : "(none)", current);
                     strcpy(best, current);
                 }
 
@@ -545,12 +527,10 @@ void solve_skill_19(char* out, int outlen) {
     /* 마지막 토큰 처리 */
     if (cidx > 0) {
         current[cidx] = '\0';
-        printf("[DEBUG] 토큰 %d = \"%s\" (길이=%d)\n",
-            token_index, current, (int)strlen(current));
+        //printf("[DEBUG] 토큰 %d = \"%s\" (길이=%d)\n", token_index, current, (int)strlen(current));
 
         if (strlen(current) > strlen(best)) {
-            printf("        → 최장 토큰 갱신: \"%s\" → \"%s\"\n",
-                best[0] ? best : "(none)", current);
+            //printf("        → 최장 토큰 갱신: \"%s\" → \"%s\"\n", best[0] ? best : "(none)", current);
             strcpy(best, current);
         }
     }
@@ -558,7 +538,7 @@ void solve_skill_19(char* out, int outlen) {
     strncpy(out, best, outlen - 1);
     out[outlen - 1] = '\0';
 
-    printf("[DEBUG] 최종 선택된 토큰 = \"%s\"\n\n", out);
+    //printf("[DEBUG] 최종 선택된 토큰 = \"%s\"\n\n", out);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -575,6 +555,9 @@ static int calculate_distance(const Player* p1, const Player* p2) {
 #define MAP_SIZE 7
 #define MIN_COORD 0
 #define MAX_COORD (MAP_SIZE - 1)
+
+
+extern void set_custom_secrete_message(const char* key, const char* message);
 
 // ---------------- AI ----------------
 int student2_ai(const Player* my_info, const Player* opponent_info) {
@@ -602,6 +585,7 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     if (repeat_cnt >= 3) {
         repeat_cnt = 0;
         last_cmd = CMD_REST;
+        set_custom_secrete_message(g_reg_key, "잠시 숨을 고르자.");
         return CMD_REST;
     }
 
@@ -612,6 +596,7 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
         first_turn = 0;
         last_cmd = CMD_POISON;
         repeat_cnt = 1;
+        set_custom_secrete_message(g_reg_key, "독 공격!");
         return CMD_POISON;
     }
 
@@ -621,6 +606,7 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     if (opp_last == CMD_POISON && my_mp >= 2) {
         last_cmd = CMD_BLESS;
         repeat_cnt = (last_cmd == CMD_BLESS) ? repeat_cnt + 1 : 1;
+        set_custom_secrete_message(g_reg_key, "축복으로 정화!");
         return CMD_BLESS;
     }
 
@@ -630,6 +616,7 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     if (my_hp <= 2 && my_mp >= 1) {
         last_cmd = CMD_HEAL;
         repeat_cnt = (last_cmd == CMD_HEAL) ? repeat_cnt + 1 : 1;
+        set_custom_secrete_message(g_reg_key, "위험해! 회복한다!");
         return CMD_HEAL;
     }
 
@@ -640,11 +627,13 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
         if (my_mp >= 2) {
             last_cmd = CMD_STRIKE;
             repeat_cnt = (last_cmd == CMD_STRIKE) ? repeat_cnt + 1 : 1;
+            set_custom_secrete_message(g_reg_key, "강타다!");
             return CMD_STRIKE;
         }
         else {
             last_cmd = CMD_ATTACK;
             repeat_cnt = (last_cmd == CMD_ATTACK) ? repeat_cnt + 1 : 1;
+            set_custom_secrete_message(g_reg_key, "기본 공격!");
             return CMD_ATTACK;
         }
     }
@@ -655,6 +644,7 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     if (my_mp <= 2) {
         last_cmd = CMD_REST;
         repeat_cnt = (last_cmd == CMD_REST) ? repeat_cnt + 1 : 1;
+        set_custom_secrete_message(g_reg_key, "MP 보충!");
         return CMD_REST;
     }
 
@@ -662,24 +652,30 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     // 6. 거리 벌리기 (점멸 우선)
     // ----------------------------------
     if (distance < 4 && my_mp >= 1) {
+        // Y축 회피
         if (my_y < opp_y && my_y > MIN_COORD) {
             last_cmd = CMD_BLINK_UP;
             repeat_cnt = (last_cmd == CMD_BLINK_UP) ? repeat_cnt + 1 : 1;
+            set_custom_secrete_message(g_reg_key, "위로 점멸!");
             return CMD_BLINK_UP;
         }
         if (my_y > opp_y && my_y < MAX_COORD) {
             last_cmd = CMD_BLINK_DOWN;
             repeat_cnt = (last_cmd == CMD_BLINK_DOWN) ? repeat_cnt + 1 : 1;
+            set_custom_secrete_message(g_reg_key, "아래로 점멸!");
             return CMD_BLINK_DOWN;
         }
+        // X축 회피
         if (my_x < opp_x && my_x > MIN_COORD) {
             last_cmd = CMD_BLINK_LEFT;
             repeat_cnt = (last_cmd == CMD_BLINK_LEFT) ? repeat_cnt + 1 : 1;
+            set_custom_secrete_message(g_reg_key, "왼쪽으로 점멸!");
             return CMD_BLINK_LEFT;
         }
         if (my_x > opp_x && my_x < MAX_COORD) {
             last_cmd = CMD_BLINK_RIGHT;
             repeat_cnt = (last_cmd == CMD_BLINK_RIGHT) ? repeat_cnt + 1 : 1;
+            set_custom_secrete_message(g_reg_key, "오른쪽으로 점멸!");
             return CMD_BLINK_RIGHT;
         }
     }
@@ -690,21 +686,25 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     if (my_x < opp_x && my_x < MAX_COORD) {
         last_cmd = CMD_RIGHT;
         repeat_cnt = (last_cmd == CMD_RIGHT) ? repeat_cnt + 1 : 1;
+        set_custom_secrete_message(g_reg_key, "오른쪽으로 접근!");
         return CMD_RIGHT;
     }
     if (my_x > opp_x && my_x > MIN_COORD) {
         last_cmd = CMD_LEFT;
         repeat_cnt = (last_cmd == CMD_LEFT) ? repeat_cnt + 1 : 1;
+        set_custom_secrete_message(g_reg_key, "왼쪽으로 접근!");
         return CMD_LEFT;
     }
     if (my_y < opp_y && my_y < MAX_COORD) {
         last_cmd = CMD_DOWN;
         repeat_cnt = (last_cmd == CMD_DOWN) ? repeat_cnt + 1 : 1;
+        set_custom_secrete_message(g_reg_key, "아래로 이동!");
         return CMD_DOWN;
     }
     if (my_y > opp_y && my_y > MIN_COORD) {
         last_cmd = CMD_UP;
         repeat_cnt = (last_cmd == CMD_UP) ? repeat_cnt + 1 : 1;
+        set_custom_secrete_message(g_reg_key, "위로 이동!");
         return CMD_UP;
     }
 
@@ -713,6 +713,7 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     // ----------------------------------
     last_cmd = CMD_ATTACK;
     repeat_cnt = (last_cmd == CMD_ATTACK) ? repeat_cnt + 1 : 1;
+    set_custom_secrete_message(g_reg_key, "예외 상황!");
     return CMD_ATTACK;
 }
 
@@ -728,7 +729,7 @@ void student2_ai_entry() {
     inited = 1;
 
     /* AI 등록 */
-    g_reg_key = register_player_ai("TEAM-B", student2_ai);
+    g_reg_key = register_player_ai("작무개김", student2_ai);
 
     /* 스킬 정답 계산 */
     char s6[256] = { 0 }, key8[128], s13[64] = { 0 }, s14[64] = { 0 }, s16[64] = { 0 }, s19[128] = { 0 };
@@ -775,62 +776,62 @@ void student2_ai_entry() {
 
     //해금됐는지 확인하려면 아래와 같이 is_skill_unlocked 사용해볼것!!!
     if (is_skill_unlocked(g_reg_key, CMD_POISON))
-        printf("TEAM-B : 1번 문제 CMD_POISON 해금 완료\n");
+        printf("작무개김 : 1번 문제 CMD_POISON 해금 완료\n");
     else
-        printf("TEAM-B : 1번 문제 CMD_POISON 해금 실패 ㅜㅜ\n");
+        printf("작무개김 : 1번 문제 CMD_POISON 해금 실패 ㅜㅜ\n");
 
 
     if (is_skill_unlocked(g_reg_key, CMD_STRIKE))
-        printf("TEAM-B : 2번 문제 CMD_STRIKE 해금 완료\n");
+        printf("작무개김 : 2번 문제 CMD_STRIKE 해금 완료\n");
     else
-        printf("TEAM-B : 2번 문제 CMD_STRIKE 해금 실패 ㅜㅜ\n");
+        printf("작무개김 : 2번 문제 CMD_STRIKE 해금 실패 ㅜㅜ\n");
 
 
 
     if (is_skill_unlocked(g_reg_key, CMD_BLINK_DOWN))
-        printf("TEAM-B : 3번 문제 CMD_BLINK 4종 해금 완료\n");
+        printf("작무개김 : 3번 문제 CMD_BLINK 4종 해금 완료\n");
     else
-        printf("TEAM-B : 3번 문제 CMD_BLINK 4종 해금 실패 ㅜㅜ\n");
+        printf("작무개김 : 3번 문제 CMD_BLINK 4종 해금 실패 ㅜㅜ\n");
 
 
 
     if (is_skill_unlocked(g_reg_key, CMD_HEAL_ALL))
-        printf("TEAM-B : 4번 문제 CMD_HEAL_ALL 해금 완료\n");
+        printf("작무개김 : 4번 문제 CMD_HEAL_ALL 해금 완료\n");
     else
-        printf("TEAM-B : 4번 문제 CMD_HEAL_ALL 해금 실패 ㅜㅜ\n");
+        printf("작무개김 : 4번 문제 CMD_HEAL_ALL 해금 실패 ㅜㅜ\n");
 
 
     if (is_skill_unlocked(g_reg_key, CMD_RANGE_ATTACK))
-        printf("TEAM-B : 5번 문제 CMD_RANGE_ATTACK 해금 완료\n");
+        printf("작무개김 : 5번 문제 CMD_RANGE_ATTACK 해금 완료\n");
     else
-        printf("TEAM-B : 5번 문제 CMD_RANGE_ATTACK 해금 실패 ㅜㅜ\n");
+        printf("작무개김 : 5번 문제 CMD_RANGE_ATTACK 해금 실패 ㅜㅜ\n");
 
 
     if (is_skill_unlocked(g_reg_key, CMD_BLESS))
-        printf("TEAM-B : 6번 문제 CMD_BLESS 해금 완료\n");
+        printf("작무개김 : 6번 문제 CMD_BLESS 해금 완료\n");
     else
-        printf("TEAM-B : 6번 문제 CMD_BLESS 해금 실패 ㅜㅜ\n");
+        printf("작무개김 : 6번 문제 CMD_BLESS 해금 실패 ㅜㅜ\n");
 
 
     if (is_skill_unlocked(g_reg_key, CMD_H_ATTACK))
-        printf("TEAM-B : 7번 문제 CMD_H_ATTACK,CMD_V_ATTACK  해금 완료\n");
+        printf("작무개김 : 7번 문제 CMD_H_ATTACK,CMD_V_ATTACK  해금 완료\n");
     else
-        printf("TEAM-B : 7번 문제 CMD_H_ATTACK,CMD_V_ATTACK 해금 실패 ㅜㅜ\n");
+        printf("작무개김 : 7번 문제 CMD_H_ATTACK,CMD_V_ATTACK 해금 실패 ㅜㅜ\n");
 
     // CMD_SECRETE (비밀 메시지) 해금 및 설정 예시
 
     if (is_skill_unlocked(g_reg_key, CMD_SECRETE))
     {
-        printf("TEAM-B : 8번 문제 CMD_SECRETE 해금 완료\n");
+        printf("작무개김 : 8번 문제 CMD_SECRETE 해금 완료\n");
         // set_custom_secrete_message 함수를 사용하여 도발 메시지를 등록합니다.
         set_custom_secrete_message(g_reg_key, "후후후 좁밥들...");
     }
     else
-        printf("TEAM-B : 8번 문제 CMD_SECRETE 해금 실패 ㅜㅜ\n");
+        printf("작무개김 : 8번 문제 CMD_SECRETE 해금 실패 ㅜㅜ\n");
 
     // ------------------------------------------------------------------
 
-    printf("TEAM-B : 플레이어 초기화 완료. 아무키나 누르시오.\n");
+    printf("작무개김 : 플레이어 초기화 완료. 아무키나 누르시오.\n");
 
     // getchar()는 그냥 멈추려고 사용한거에요
     getchar();
