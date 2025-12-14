@@ -824,7 +824,7 @@ END:
    PlayerB 초기 등록 + 스킬 해금 시도
 ------------------------------------------------------- */
 
-void student2_ai_entry() {
+void student1_ai_entry() {
     static int inited = 0;
     if (inited) return;
     inited = 1;
