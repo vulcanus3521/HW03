@@ -292,7 +292,7 @@ int main() {
 
         // 5. ÅÏ Áö¿¬
         if (game_state.game_over == 0) {
-            Sleep(300);
+            Sleep(500);
         }
     }
 

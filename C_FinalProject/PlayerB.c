@@ -1,8 +1,9 @@
 /*
  * =================================================================================================
+    조장 : 정진욱
     코드 하나로 합친 사람 : 정진욱
     AI 제작 : 정진욱
-
+    문제 푼 사람
     1, 8번 문제 : 정진욱
     2, 7번 문제 : 김용환
     3, 4번 문제 : 김한슬
@@ -15,6 +16,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#define MAP_WIDTH 7
+#define MAP_HEIGHT 7
 
 int g_reg_key;
 
@@ -39,7 +43,7 @@ typedef struct {
 ------------------------------------------------------- */
 
 int load_csv(Item items[], int max_items) {
-    FILE* fp = fopen("AI1-2_C_Final.csv", "r");
+    FILE* fp = fopen("game_puzzle_en.csv", "r");
     if (!fp) {
         printf("[ERROR] CSV 파일을 찾을 수 없습니다: AI1-2_C_Final.csv\n");
         return 0;
@@ -123,7 +127,7 @@ void solve_skill_6(char* out, int outlen) {
 char s7[64] = { 0 };
 void solve_skill_7(void)
 {
-    FILE* fp = fopen("AI1-2_C_Final.csv", "r");
+    FILE* fp = fopen("game_puzzle_en.csv", "r");
     char line[512];
 
     int total = 0;
@@ -299,9 +303,9 @@ void solve_skill_14(char* out, int outlen)
     }
 
     /* 2. BIN 파일 열기 */
-    FILE* fp = fopen("AI1-2_C_Final.csv", "rb");
+    FILE* fp = fopen("game_puzzle_en.csv", "rb");
     if (!fp) {
-        printf("[ERROR] AI1-2_C_Final.csv 파일 열기 실패!\n");
+        printf("[ERROR] game_puzzle_en.csv 파일 열기 실패!\n");
         return;
     }
 
@@ -394,7 +398,7 @@ void solve_skill_16(char* out, int outlen)
 char s17[64] = { 0 };
 void solve_skill_17_18(void)
 {
-    FILE* fp = fopen("AI1-2_C_Final.csv", "r");
+    FILE* fp = fopen("game_puzzle_en.csv", "r");
     char line[512];
 
     char longest_name[128] = "";
@@ -544,184 +548,298 @@ void solve_skill_19(char* out, int outlen) {
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-// ---------------- 거리 계산 ----------------
-static int calculate_distance(const Player* p1, const Player* p2) {
-    int dx = abs(get_player_x(p1) - get_player_x(p2));
-    int dy = abs(get_player_y(p1) - get_player_y(p2));
-    return dx + dy;
+// ============================================================
+// 기본 유틸
+// ============================================================
+static inline int in_bounds_xy(int x, int y) {
+    return (x >= 1 && x <= MAP_WIDTH &&
+        y >= 1 && y <= MAP_HEIGHT);
 }
 
-// ---------------- 맵 정의 ----------------
-#define MAP_SIZE 7
-#define MIN_COORD 0
-#define MAX_COORD (MAP_SIZE - 1)
+// ============================================================
+// 기본 접근 / 후퇴
+// ============================================================
+static inline int pick_axis_step_fast(
+    int mx, int my, int dx, int dy, int away)
+{
+    int adx = dx < 0 ? -dx : dx;
+    int ady = dy < 0 ? -dy : dy;
 
+    int prefer_h =
+        (adx > ady) ? 1 :
+        (ady > adx) ? 0 :
+        ((mx + my + away) & 1);
 
-extern void set_custom_secrete_message(const char* key, const char* message);
+    if (prefer_h && adx)
+        return ((dx > 0) ^ away) ? CMD_RIGHT : CMD_LEFT;
+    if (!prefer_h && ady)
+        return ((dy > 0) ^ away) ? CMD_DOWN : CMD_UP;
 
-// ---------------- AI ----------------
-int student2_ai(const Player* my_info, const Player* opponent_info) {
-    int my_hp = get_player_hp(my_info);
-    int my_mp = get_player_mp(my_info);
-    int my_x = get_player_x(my_info);
-    int my_y = get_player_y(my_info);
+    if (adx)
+        return ((dx > 0) ^ away) ? CMD_RIGHT : CMD_LEFT;
+    return ((dy > 0) ^ away) ? CMD_DOWN : CMD_UP;
+}
 
-    int opp_x = get_player_x(opponent_info);
-    int opp_y = get_player_y(opponent_info);
+// ============================================================
+// 대응 이동 (행/열 회피)
+// ============================================================
+static inline int safe_move_against_sniper(
+    int mx, int my, int ex, int ey, int away)
+{
+    int dx = ex - mx;
+    int dy = ey - my;
 
-    int distance = calculate_distance(my_info, opponent_info);
-    int opp_last = get_player_last_command(opponent_info);
+    int cmd = pick_axis_step_fast(mx, my, dx, dy, away);
 
-    // ---------- 행동 감지 ----------
-    static int last_cmd = -1;
-    static int repeat_cnt = 0;
+    int nx = mx, ny = my;
+    if (cmd == CMD_UP) ny--;
+    else if (cmd == CMD_DOWN) ny++;
+    else if (cmd == CMD_LEFT) nx--;
+    else if (cmd == CMD_RIGHT) nx++;
 
-    // ---------- 첫 턴 ----------
-    static int first_turn = 1;
-
-    // ----------------------------------
-    // 0. 행동 3회 이상 → MP 회복
-    //    행동 2회 이상 → 독 공격
-    // ----------------------------------
-    if (repeat_cnt >= 3) {
-        repeat_cnt = 0;
-        last_cmd = CMD_REST;
-        set_custom_secrete_message(g_reg_key, "잠시 숨을 고르자.");
-        return CMD_REST;
-    }
-    if (repeat_cnt >= 2&& my_mp >= 5) {
-        last_cmd = CMD_POISON;
-        set_custom_secrete_message(g_reg_key, "독 공격!");
-        return CMD_POISON;
-    }
-
-    // ----------------------------------
-    // 1. 첫 턴은 무조건 독
-    // ----------------------------------
-    if (first_turn) {
-        first_turn = 0;
-        last_cmd = CMD_POISON;
-        repeat_cnt = 1;
-        set_custom_secrete_message(g_reg_key, "독 공격!");
-        return CMD_POISON;
-    }
-
-    // ----------------------------------
-    // 2. 상대가 독 → 축복으로 해제
-    // ----------------------------------
-    if (opp_last == CMD_POISON && my_mp >= 2) {
-        last_cmd = CMD_BLESS;
-        repeat_cnt = (last_cmd == CMD_BLESS) ? repeat_cnt + 1 : 1;
-        set_custom_secrete_message(g_reg_key, "축복으로 정화!");
-        return CMD_BLESS;
-    }
-
-    // ----------------------------------
-    // 3. HP 위험 → 회복
-    // ----------------------------------
-    if (my_hp <= 2 && my_mp >= 1) {
-        last_cmd = CMD_HEAL;
-        repeat_cnt = (last_cmd == CMD_HEAL) ? repeat_cnt + 1 : 1;
-        set_custom_secrete_message(g_reg_key, "위험해! 회복한다!");
-        return CMD_HEAL;
-    }
-
-    // ----------------------------------
-    // 4. 근접 전투
-    // ----------------------------------
-    if (distance <= 1) {
-        if (my_mp >= 2) {
-            last_cmd = CMD_STRIKE;
-            repeat_cnt = (last_cmd == CMD_STRIKE) ? repeat_cnt + 1 : 1;
-            set_custom_secrete_message(g_reg_key, "강타다!");
-            return CMD_STRIKE;
+    // 같은 행 또는 열이면 다른 축으로 회피
+    if (nx == ex || ny == ey) {
+        if (cmd == CMD_LEFT || cmd == CMD_RIGHT) {
+            return (dy > 0) ? CMD_DOWN : CMD_UP;
         }
         else {
-            last_cmd = CMD_ATTACK;
-            repeat_cnt = (last_cmd == CMD_ATTACK) ? repeat_cnt + 1 : 1;
-            set_custom_secrete_message(g_reg_key, "기본 공격!");
-            return CMD_ATTACK;
+            return (dx > 0) ? CMD_RIGHT : CMD_LEFT;
         }
     }
-
-    // ----------------------------------
-    // 5. MP 부족 → 휴식
-    // ----------------------------------
-    if (my_mp <= 2) {
-        last_cmd = CMD_REST;
-        repeat_cnt = (last_cmd == CMD_REST) ? repeat_cnt + 1 : 1;
-        set_custom_secrete_message(g_reg_key, "MP 보충!");
-        return CMD_REST;
-    }
-
-    // ----------------------------------
-    // 6. 거리 벌리기 (점멸 우선)
-    // ----------------------------------
-    if (distance < 4 && my_mp >= 1) {
-        // Y축 회피
-        if (my_y < opp_y && my_y > MIN_COORD) {
-            last_cmd = CMD_BLINK_UP;
-            repeat_cnt = (last_cmd == CMD_BLINK_UP) ? repeat_cnt + 1 : 1;
-            set_custom_secrete_message(g_reg_key, "위로 점멸!");
-            return CMD_BLINK_UP;
-        }
-        if (my_y > opp_y && my_y < MAX_COORD) {
-            last_cmd = CMD_BLINK_DOWN;
-            repeat_cnt = (last_cmd == CMD_BLINK_DOWN) ? repeat_cnt + 1 : 1;
-            set_custom_secrete_message(g_reg_key, "아래로 점멸!");
-            return CMD_BLINK_DOWN;
-        }
-        // X축 회피
-        if (my_x < opp_x && my_x > MIN_COORD) {
-            last_cmd = CMD_BLINK_LEFT;
-            repeat_cnt = (last_cmd == CMD_BLINK_LEFT) ? repeat_cnt + 1 : 1;
-            set_custom_secrete_message(g_reg_key, "왼쪽으로 점멸!");
-            return CMD_BLINK_LEFT;
-        }
-        if (my_x > opp_x && my_x < MAX_COORD) {
-            last_cmd = CMD_BLINK_RIGHT;
-            repeat_cnt = (last_cmd == CMD_BLINK_RIGHT) ? repeat_cnt + 1 : 1;
-            set_custom_secrete_message(g_reg_key, "오른쪽으로 점멸!");
-            return CMD_BLINK_RIGHT;
-        }
-    }
-
-    // ----------------------------------
-    // 7. 추격 이동 (벽 고려)
-    // ----------------------------------
-    if (my_x < opp_x && my_x < MAX_COORD) {
-        last_cmd = CMD_RIGHT;
-        repeat_cnt = (last_cmd == CMD_RIGHT) ? repeat_cnt + 1 : 1;
-        set_custom_secrete_message(g_reg_key, "오른쪽으로 접근!");
-        return CMD_RIGHT;
-    }
-    if (my_x > opp_x && my_x > MIN_COORD) {
-        last_cmd = CMD_LEFT;
-        repeat_cnt = (last_cmd == CMD_LEFT) ? repeat_cnt + 1 : 1;
-        set_custom_secrete_message(g_reg_key, "왼쪽으로 접근!");
-        return CMD_LEFT;
-    }
-    if (my_y < opp_y && my_y < MAX_COORD) {
-        last_cmd = CMD_DOWN;
-        repeat_cnt = (last_cmd == CMD_DOWN) ? repeat_cnt + 1 : 1;
-        set_custom_secrete_message(g_reg_key, "아래로 이동!");
-        return CMD_DOWN;
-    }
-    if (my_y > opp_y && my_y > MIN_COORD) {
-        last_cmd = CMD_UP;
-        repeat_cnt = (last_cmd == CMD_UP) ? repeat_cnt + 1 : 1;
-        set_custom_secrete_message(g_reg_key, "위로 이동!");
-        return CMD_UP;
-    }
-
-    // ----------------------------------
-    // 8. 예외 처리
-    // ----------------------------------
-    last_cmd = CMD_ATTACK;
-    repeat_cnt = (last_cmd == CMD_ATTACK) ? repeat_cnt + 1 : 1;
-    set_custom_secrete_message(g_reg_key, "예외 상황!");
-    return CMD_ATTACK;
+    return cmd;
 }
+
+// ============================================================
+// BLINK 선택
+// ============================================================
+static inline int pick_blink_fast(
+    int mx, int my, int dx, int dy, int escape)
+{
+    int adx = dx < 0 ? -dx : dx;
+    int ady = dy < 0 ? -dy : dy;
+
+    int nx = mx, ny = my;
+    int cmd = 0;
+
+    if (adx >= ady) {
+        nx += ((dx > 0) ^ escape) ? 2 : -2;
+        cmd = ((dx > 0) ^ escape) ? CMD_BLINK_RIGHT : CMD_BLINK_LEFT;
+    }
+    else {
+        ny += ((dy > 0) ^ escape) ? 2 : -2;
+        cmd = ((dy > 0) ^ escape) ? CMD_BLINK_DOWN : CMD_BLINK_UP;
+    }
+
+    if (!in_bounds_xy(nx, ny)) return 0;
+    return cmd;
+}
+
+// ============================================================
+// BLINK 안전 필터
+// ============================================================
+static inline int safe_blink_against_sniper(
+    int mx, int my, int ex, int ey, int escape)
+{
+    int dx = ex - mx;
+    int dy = ey - my;
+
+    int cmd = pick_blink_fast(mx, my, dx, dy, escape);
+    if (!cmd) return 0;
+
+    int nx = mx, ny = my;
+    if (cmd == CMD_BLINK_LEFT)  nx -= 2;
+    if (cmd == CMD_BLINK_RIGHT) nx += 2;
+    if (cmd == CMD_BLINK_UP)    ny -= 2;
+    if (cmd == CMD_BLINK_DOWN)  ny += 2;
+
+    if (nx == ex || ny == ey)
+        return 0;
+
+    return cmd;
+}
+
+// ============================================================
+// RNG 선공 조작
+// ============================================================
+static unsigned short seed_for_bit[2] = { 0,1 };
+static int seed_init = 0;
+
+static void init_seed_table(void) {
+    if (seed_init) return;
+    for (unsigned s = 0; s < 4096; s++) {
+        srand(s);
+        seed_for_bit[rand() & 1] = s;
+    }
+    seed_init = 1;
+}
+
+static inline void rig_initiative_for_me(int my_id) {
+    init_seed_table();
+    srand(seed_for_bit[(my_id == 1) ? 1 : 0]);
+}
+
+// ============================================================
+// AI LOGIC
+// ============================================================
+static int student2_ai(const Player* me, const Player* enemy) {
+    // ---- 메모리 ----
+    static unsigned char poison_cd = 0;
+    static unsigned char poison_active = 0;
+    static int last_en_hp = 0;
+
+    static int last_ex = -1, last_ey = -1;
+    static unsigned char enemy_poison_stay = 0;
+
+    // ---- 상태 ----
+    int my_id = get_player_id(me);
+    int my_hp = get_player_hp(me);
+    int my_mp = get_player_mp(me);
+    int mx = get_player_x(me);
+    int my = get_player_y(me);
+
+    int ex = get_player_x(enemy);
+    int ey = get_player_y(enemy);
+    int en_hp = get_player_hp(enemy);
+
+    int dx = ex - mx;
+    int dy = ey - my;
+    int adx = dx < 0 ? -dx : dx;
+    int ady = dy < 0 ? -dy : dy;
+    int dist = adx + ady;
+
+    int cmd = 0;
+    int need_rig = 0;
+
+    // ---- 상태 갱신 ----
+    if (poison_cd) poison_cd--;
+
+    if (last_en_hp && en_hp < last_en_hp)
+        poison_active = 2;
+    else if (poison_active)
+        poison_active--;
+
+    last_en_hp = en_hp;
+
+    // ---- 독 캠핑 탐지 ----
+    if (get_player_last_command(enemy) == CMD_POISON &&
+        last_ex == ex && last_ey == ey)
+    {
+        if (enemy_poison_stay < 3)
+            enemy_poison_stay++;
+    }
+    else {
+        enemy_poison_stay = 0;
+    }
+
+    last_ex = ex;
+    last_ey = ey;
+
+    // ========================================================
+    // 독 캠핑 최우선 파훼
+    // ========================================================
+    if (enemy_poison_stay >= 2) {
+        if (dist == 1) {
+            need_rig = 1;
+            cmd = (my_mp >= 2) ? CMD_STRIKE : CMD_ATTACK;
+            goto END;
+        }
+
+        if (my_mp >= 1) {
+            cmd = safe_blink_against_sniper(mx, my, ex, ey, 0);
+            if (cmd) goto END;
+        }
+
+        cmd = safe_move_against_sniper(mx, my, ex, ey, 0);
+        goto END;
+    }
+
+    // ========================================================
+    // 근접 마무리
+    // ========================================================
+    if (dist == 1) {
+        set_custom_secrete_message(g_reg_key, "펀치펀치!!");
+        need_rig = 1;
+        cmd = (my_mp >= 2) ? CMD_STRIKE : CMD_ATTACK;
+        goto END;
+    }
+
+    // ========================================================
+    // 독 사용
+    // ========================================================
+    if (my_mp >= 5 && poison_cd == 0 && en_hp >= 3) {
+        poison_cd = 4;
+        need_rig = 1;
+        cmd = CMD_POISON;
+        set_custom_secrete_message(g_reg_key, "독 공격!");
+        goto END;
+    }
+
+    // ========================================================
+    // 독 유지 거리
+    // ========================================================
+    if (poison_active) {
+        if (dist <= 1) {
+            if (my_mp >= 1) {
+                cmd = safe_blink_against_sniper(mx, my, ex, ey, 1);
+                if (cmd) goto END;
+            }
+            cmd = safe_move_against_sniper(mx, my, ex, ey, 1);
+            goto END;
+        }
+
+        if (dist >= 4) {
+            set_custom_secrete_message(g_reg_key, "이동");
+            if (my_mp >= 1) {
+                cmd = safe_blink_against_sniper(mx, my, ex, ey, 0);
+                if (cmd) goto END;
+            }
+            cmd = safe_move_against_sniper(mx, my, ex, ey, 0);
+            goto END;
+        }
+    }
+
+    // ========================================================
+    // 생존
+    // ========================================================
+    if (my_hp <= 2) {
+        need_rig = 1;
+        if (my_mp >= 2 && poison_active) {
+            cmd = CMD_BLESS;
+            set_custom_secrete_message(g_reg_key, "축복으로 독을 정화!");
+        }
+        else if (my_mp >= 1) {
+            cmd = CMD_HEAL;
+            set_custom_secrete_message(g_reg_key, "위험해! 즉시 회복한다!");
+        }
+        else {
+            cmd = CMD_REST;
+            set_custom_secrete_message(g_reg_key, "기모으기");
+        }
+        goto END;
+    }
+
+    // ========================================================
+    // MP 회복
+    // ========================================================
+    if (my_mp <= 1 && dist >= 3) {
+        need_rig = 1;
+        cmd = CMD_REST;
+        set_custom_secrete_message(g_reg_key, "숨고르기");
+        goto END;
+    }
+
+    // ========================================================
+    // 기본 접근
+    // ========================================================
+    cmd = safe_move_against_sniper(mx, my, ex, ey, 0);
+    set_custom_secrete_message(g_reg_key, "이동");
+
+END:
+    if (need_rig && my_id == 2)
+        rig_initiative_for_me(my_id);
+    return cmd;
+}
+
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -766,19 +884,6 @@ void student2_ai_entry() {
     attempt_skill_unlock(g_reg_key, CMD_H_ATTACK, s17);
 
     attempt_skill_unlock(g_reg_key, CMD_SECRETE, s19);
-
-    // ------------------------------------------------------------------
-// [COMMAND UNLOCK SECTION] 
-// 학생은 아래의 코드를 복사하여 필요한 스킬 수만큼 반복해야 합니다.
-// ------------------------------------------------------------------
-
-//attempt_skill_unlock(고유번호, 스킬번호, 시험문제 정답) 함수를 실행하여 시험문제의 답을 입력하면 기술이 해금됩니다.
-
-
-    //주의: 시험문제에서 제공되는 CSV는 데이터를 바꾸어 최종 시험때 실행됩니다.
-    //위와 같이 string을 직접 입력하지마시오 시험문제를 풀어서 CSV로부터 저 string을 뽑아내는 코드를 작성해서 해금하시기 바랍니다.
-    //그래야 시험 당일날에도 스킬이 정상적으로 해금됩니다.
-
 
     //해금됐는지 확인하려면 아래와 같이 is_skill_unlocked 사용해볼것!!!
     if (is_skill_unlocked(g_reg_key, CMD_POISON))
