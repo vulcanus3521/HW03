@@ -1,7 +1,7 @@
 /*
  * =================================================================================================
     코드 하나로 합친 사람 : 정진욱
-    AI 제작 : 보류 (정진욱)
+    AI 제작 : 정진욱
 
     1, 8번 문제 : 정진욱
     2, 7번 문제 : 김용환
@@ -572,7 +572,7 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     int distance = calculate_distance(my_info, opponent_info);
     int opp_last = get_player_last_command(opponent_info);
 
-    // ---------- 반복 행동 감지 ----------
+    // ---------- 행동 감지 ----------
     static int last_cmd = -1;
     static int repeat_cnt = 0;
 
@@ -580,13 +580,19 @@ int student2_ai(const Player* my_info, const Player* opponent_info) {
     static int first_turn = 1;
 
     // ----------------------------------
-    // 0. 반복 행동 3회 이상 → MP 회복
+    // 0. 행동 3회 이상 → MP 회복
+    //    행동 2회 이상 → 독 공격
     // ----------------------------------
     if (repeat_cnt >= 3) {
         repeat_cnt = 0;
         last_cmd = CMD_REST;
         set_custom_secrete_message(g_reg_key, "잠시 숨을 고르자.");
         return CMD_REST;
+    }
+    if (repeat_cnt >= 2&& my_mp >= 5) {
+        last_cmd = CMD_POISON;
+        set_custom_secrete_message(g_reg_key, "독 공격!");
+        return CMD_POISON;
     }
 
     // ----------------------------------
