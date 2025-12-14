@@ -7,7 +7,7 @@
     1, 8번 문제 : 정진욱
     2, 7번 문제 : 김용환
     3, 4번 문제 : 김한슬
-    5, 6번 문제 : 보류 (정형욱)
+    5, 6번 문제 : 정형욱
  * =================================================================================================
  */
 
@@ -267,133 +267,110 @@ void solve_skill_13(char* out, int outlen) {
 }
 
 /* -------------------------------------------------------
-   문제 5 (원거리공격 해금, 스킬 14 / CMD_RANGE_ATTACK)
-   - KEY_FRAG == "K" 인 아이템을 찾아 그 아이템의 HP를 N으로 정의
-   - 파일의 시작(오프셋 0)에서 N 바이트 앞으로 fseek 이동
-   - 그 위치에서 5바이트를 읽어 앞뒤로 따옴표를 붙여 정답 생성
-     (출력/전달용 문자열에는 실제 큰따옴표 문자를 포함)
+   문제 5 (원거리공격 / CMD_RANGE_ATTACK = 14)
+   - KEY_FRAG가 'K' 또는 'k' 포함된 아이템 찾기
+   - 그 아이템의 HP를 N으로 정의
+   - 파일 시작에서 N 바이트 앞으로 fseek
+   - 거기서 5바이트 읽고, "<5바이트>" 형태로 out에 저장
+
+   오프셋은 0부터 시작합니다.
+   문제에서 'N 바이트 앞으로 이동'이면 fseek(fp, N, SEEK_SET)가 맞습니다.
 ------------------------------------------------------- */
-void solve_skill_14(char* out, int outlen)
-{
+static void solve_skill_14(char* out, int outlen) {
     out[0] = '\0';
 
     Item items[256];
     int n = load_csv(items, 256);
 
-    /* 1. KEY_FRAG에 'K'가 들어있는 아이템 찾기 */
-    int found_id = -1;
-    int hp_value = 0;
-    char keyfrag[64] = { 0 };
+    int hpN = -1;
 
     for (int i = 0; i < n; i++) {
-        if (strchr(items[i].key_frag, 'K') != NULL) {
-            found_id = items[i].id;
-            hp_value = items[i].hp;
-            strcpy(keyfrag, items[i].key_frag);
+        const char* kf = items[i].key_frag;
+        if (strcmp(kf, "NIL") == 0) continue;
 
-            //printf("KEY_FRAG = %s → ID %d\n", keyfrag, found_id);
-            //printf("HP = %d\n", hp_value);
+        /* 'K' 또는 'k' 포함 (교수님이 *k*로 바꿔도 대응) */
+        if (strchr(kf, 'K') || strchr(kf, 'k')) {
+            hpN = items[i].hp;
             break;
         }
     }
 
-    if (found_id == -1) {
-        printf("[ERROR] KEY_FRAG 안에 'K' 포함된 아이템 없음\n");
+    if (hpN < 0) {
+        printf("[ERROR] KEY_FRAG에 K/k 포함된 아이템을 못 찾음\n");
         return;
     }
 
-    /* 2. BIN 파일 열기 */
     FILE* fp = fopen("game_puzzle_en.csv", "rb");
     if (!fp) {
-        printf("[ERROR] game_puzzle_en.csv 파일 열기 실패!\n");
+        printf("[ERROR] game_puzzle_en.csv 바이너리 열기 실패\n");
         return;
     }
 
-    /* 3. fseek 이동 */
-    //printf("fseek(0, %d, SEEK_SET)\n", hp_value);
-    fseek(fp, hp_value - 1, SEEK_SET);
+    if (fseek(fp, hpN - 1, SEEK_SET) != 0) {
+        fclose(fp);
+        printf("[ERROR] fseek 실패 (N=%d)\n", hpN);
+        return;
+    }
 
-    /* 4. 5글자 읽기 */
     char buf[6] = { 0 };
-    fread(buf, 1, 5, fp);
+    (void)fread(buf, 1, 5, fp);
     fclose(fp);
 
-    //printf("파일 %d번째 바이트부터 읽은 5글자: %s\n", hp_value, buf);
-
-    /* 5. 결과를 \"문자열\" 형태로 변환 */
+    /* 큰따옴표 포함 문자열: "LOT,A" 같은 형태 */
     snprintf(out, outlen, "\"%s\"", buf);
-
-    //printf("정답: \"%s\"\n", buf);
 }
 
 /* -------------------------------------------------------
-   문제 6 (자폭 스킬, CMD_SELF_DESTRUCT = 16)
-   - NAME에 "Sword" 포함 아이템 찾기
-   - 해당 아이템들의 KEY_FRAG를 순서대로 이어붙여 S 생성
-   - S를 '*' 기준으로 strtok → 토큰 중 가장 긴 것 선택
-   - 길이 같으면 먼저 등장한 토큰
-   - 모든 과정 출력
+   문제 6 (스킬 16 / CMD_BLESS = 16)
+   - NAME에 "Sword" 포함된 아이템들의 KEY_FRAG를 순서대로 이어붙여 S 생성
+   - S를 '*' 기준으로 strtok
+   - 토큰 중 가장 긴 것 선택 (길이 같으면 먼저 나온 토큰 유지)
+   - out에 최장 토큰 저장
 ------------------------------------------------------- */
-void solve_skill_16(char* out, int outlen)
-{
+static void solve_skill_16(char* out, int outlen) {
     out[0] = '\0';
 
     Item items[256];
     int n = load_csv(items, 256);
 
-    char S[256] = { 0 };
-    int found_count = 0;
+    char S[512] = { 0 };
+    int found = 0;
 
-    //printf("=== [자폭 스킬 해금 풀이 과정] ===\n");
-
-    /* 1. NAME에 Sword 포함 아이템 찾기 */
     for (int i = 0; i < n; i++) {
-        if (strstr(items[i].name, "Sword") != NULL) {
-            //printf("Sword 포함: ID %d (%s), KEY_FRAG=%s\n", items[i].id, items[i].name, items[i].key_frag);
+        if (strcmp(items[i].key_frag, "NIL") == 0) continue;
 
-            strncat(S, items[i].key_frag, sizeof(S) - strlen(S) - 1);
-            found_count++;
+        if (strstr(items[i].name, "Sword") != NULL || strstr(items[i].name, "sword") != NULL) {
+            strncat(S, items[i].key_frag, (int)sizeof(S) - (int)strlen(S) - 1);
+            found++;
         }
     }
 
-    if (found_count == 0) {
-        printf("[ERROR] Sword 포함 아이템 없음\n");
+    if (found == 0) {
+        printf("[ERROR] name에 Sword 포함된 아이템이 없음\n");
         return;
     }
 
-    //printf("S = \"%s\"\n", S);
+    char copy[512];
+    strncpy(copy, S, sizeof(copy) - 1);
+    copy[sizeof(copy) - 1] = '\0';
 
-    /* 2. strtok('*') → 토큰 중 가장 긴 것 선택 */
-    char S_copy[256];
-    strcpy(S_copy, S);
-
-    char* token = strtok(S_copy, "*");
     char best[128] = { 0 };
 
-    int t_index = 0;
-    while (token != NULL) {
-        //printf("토큰 %d = \"%s\" (길이=%d)\n", t_index, token, (int)strlen(token));
-
-        if (strlen(token) > strlen(best)) {
-            strcpy(best, token);
-            //printf(" → 현재 최장 토큰 갱신: \"%s\"\n", best);
+    for (char* tok = strtok(copy, "*"); tok != NULL; tok = strtok(NULL, "*")) {
+        int len = (int)strlen(tok);
+        if (len == 0) continue;
+        if (len > (int)strlen(best)) {
+            strncpy(best, tok, sizeof(best) - 1);
+            best[sizeof(best) - 1] = '\0';
         }
-        /* 길이 동일하면 '먼저 나온 토큰 유지' 규칙이므로 갱신 X */
-
-        t_index++;
-        token = strtok(NULL, "*");
     }
 
-    /* 3. 정답 반환 */
     strncpy(out, best, outlen - 1);
     out[outlen - 1] = '\0';
-
-    //printf("최종 선택된 토큰 = \"%s\"\n", out);
-    //printf("=== [자폭 스킬 풀이 끝] ===\n");
 }
 
 /* -------------------------------------------------------
-   문제 7 - 김용환, s7 전역 변수에 정답 저장
+   문제 7 - s7 전역 변수에 정답 저장
 ------------------------------------------------------- */
 char s17[64] = { 0 };
 void solve_skill_17_18(void)
