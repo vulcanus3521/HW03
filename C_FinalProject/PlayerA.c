@@ -810,7 +810,7 @@ static int simple_ai(const Player* me, const Player* enemy) {
 }
 
 // entry
-void student2_ai_entry() {
+void student1_ai_entry() {
     load_csv_file(current_filename);
     int reg = register_player_ai("TeamStudent2", simple_ai);
     our_reg_key = reg;

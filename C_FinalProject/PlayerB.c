@@ -43,7 +43,7 @@ typedef struct {
 ------------------------------------------------------- */
 
 int load_csv(Item items[], int max_items) {
-    FILE* fp = fopen("game_puzzle_en.csv", "r");
+    FILE* fp = fopen("AI1-2_C_Final.csv", "r");//---------------------------------------------------------------------------
     if (!fp) {
         printf("[ERROR] CSV 파일을 찾을 수 없습니다: AI1-2_C_Final.csv\n");
         return 0;
@@ -127,7 +127,7 @@ void solve_skill_6(char* out, int outlen) {
 char s7[64] = { 0 };
 void solve_skill_7(void)
 {
-    FILE* fp = fopen("game_puzzle_en.csv", "r");
+    FILE* fp = fopen("AI1-2_C_Final.csv", "r");
     char line[512];
 
     int total = 0;
@@ -300,9 +300,9 @@ static void solve_skill_14(char* out, int outlen) {
         return;
     }
 
-    FILE* fp = fopen("game_puzzle_en.csv", "rb");
+    FILE* fp = fopen("AI1-2_C_Final.csv", "rb");//---------------------------------------------------------------------------
     if (!fp) {
-        printf("[ERROR] game_puzzle_en.csv 바이너리 열기 실패\n");
+        printf("[ERROR] AI1-2_C_Final.csv 바이너리 열기 실패\n");
         return;
     }
 
@@ -375,7 +375,7 @@ static void solve_skill_16(char* out, int outlen) {
 char s17[64] = { 0 };
 void solve_skill_17_18(void)
 {
-    FILE* fp = fopen("game_puzzle_en.csv", "r");
+    FILE* fp = fopen("AI1-2_C_Final.csv", "r");//---------------------------------------------------------------------------
     char line[512];
 
     char longest_name[128] = "";
@@ -824,7 +824,7 @@ END:
    PlayerB 초기 등록 + 스킬 해금 시도
 ------------------------------------------------------- */
 
-void student1_ai_entry() {
+void student2_ai_entry() {
     static int inited = 0;
     if (inited) return;
     inited = 1;
